@@ -1,11 +1,11 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-
+import HugeUploader from 'huge-uploader'
 import LayoutDefault from './Layout'
 import InputDefault from './Input'
 import PreviewDefault from './Preview'
 import SubmitButtonDefault from './SubmitButton'
-// dASDAS
+
 import {
   formatBytes,
   formatDuration,
@@ -504,8 +504,10 @@ class Dropzone extends React.Component<IDropzoneProps, { active: boolean; dragge
     } catch (e) {
       console.error('Error Upload Params', e.stack)
     }
+
     if (params === null) return
-    const { url, method = 'POST', body, fields = {}, headers = {}, meta: extraMeta = {} } = params
+
+    const { url, body, meta: extraMeta = {}, headers = {}, method = 'POST' } = params
     delete extraMeta.status
 
     if (!url) {
@@ -515,11 +517,24 @@ class Dropzone extends React.Component<IDropzoneProps, { active: boolean; dragge
       return
     }
 
+    // const uploader = new HugeUploader({ endpoint: url, file: body })
+
+    // subscribe to events
+    // uploader.on('error', err => {
+    //   console.error('💥 🙀', err.detail)
+    // })
+
+    // uploader.on('progress', progress => {
+    //   console.log(`So far we've uploaded ${progress.detail}% of this file.`)
+    // })
+
+    // uploader.on('finish', () => {
+    //   console.log("Wrap it up, we're done here. 👋")
+    // })
+
     const xhr = new XMLHttpRequest()
-    const formData = new FormData()
     xhr.open(method, url, true)
 
-    for (const field of Object.keys(fields)) formData.append(field, fields[field])
     xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest')
     for (const header of Object.keys(headers)) xhr.setRequestHeader(header, headers[header])
     fileWithMeta.meta = { ...fileWithMeta.meta, ...extraMeta }
@@ -555,9 +570,8 @@ class Dropzone extends React.Component<IDropzoneProps, { active: boolean; dragge
       }
     })
 
-    formData.append('file', fileWithMeta.file)
     if (this.props.timeout) xhr.timeout = this.props.timeout
-    xhr.send(body || formData)
+    xhr.send(body)
     fileWithMeta.xhr = xhr
     fileWithMeta.meta.status = 'uploading'
     this.handleChangeStatus(fileWithMeta)

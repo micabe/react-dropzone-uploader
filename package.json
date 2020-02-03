@@ -23,9 +23,9 @@
   },
   "license": "MIT",
   "peerDependencies": {
+    "prop-types": ">=15.5.10",
     "react": ">=16.2.0",
-    "react-dom": ">=16.2.0",
-    "prop-types": ">=15.5.10"
+    "react-dom": ">=16.2.0"
   },
   "devDependencies": {
     "@babel/core": "^7.1.2",
@@ -80,7 +80,8 @@
     "prettier": "prettier --write src/**/*.ts src/**/*.tsx"
   },
   "dependencies": {
-    "@babel/runtime": "^7.1.2"
+    "@babel/runtime": "^7.1.2",
+    "huge-uploader": "^1.0.6"
   },
   "husky": {
     "hooks": {
