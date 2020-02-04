@@ -1,10 +1,10 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import HugeUploader from 'huge-uploader'
 import LayoutDefault from './Layout'
 import InputDefault from './Input'
 import PreviewDefault from './Preview'
 import SubmitButtonDefault from './SubmitButton'
+import Uploader from './Uploader'
 
 import {
   formatBytes,
@@ -70,6 +70,7 @@ export interface IMeta {
 }
 
 export interface IFileWithMeta {
+  fileWithMeta: { abort: () => void; continue: () => void }
   file: File
   meta: IMeta
   cancel: () => void
@@ -507,8 +508,7 @@ class Dropzone extends React.Component<IDropzoneProps, { active: boolean; dragge
 
     if (params === null) return
 
-    const { url, body, meta: extraMeta = {}, headers = {}, method = 'POST' } = params
-    delete extraMeta.status
+    const { url, body, chunkSize = 10 } = params
 
     if (!url) {
       fileWithMeta.meta.status = 'error_upload_params'
@@ -517,62 +517,30 @@ class Dropzone extends React.Component<IDropzoneProps, { active: boolean; dragge
       return
     }
 
-    // const uploader = new HugeUploader({ endpoint: url, file: body })
-
-    // subscribe to events
-    // uploader.on('error', err => {
-    //   console.error('💥 🙀', err.detail)
-    // })
-
-    // uploader.on('progress', progress => {
-    //   console.log(`So far we've uploaded ${progress.detail}% of this file.`)
-    // })
-
-    // uploader.on('finish', () => {
-    //   console.log("Wrap it up, we're done here. 👋")
-    // })
-
-    const xhr = new XMLHttpRequest()
-    xhr.open(method, url, true)
-
-    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest')
-    for (const header of Object.keys(headers)) xhr.setRequestHeader(header, headers[header])
-    fileWithMeta.meta = { ...fileWithMeta.meta, ...extraMeta }
-
-    // update progress (can be used to show progress indicator)
-    xhr.upload.addEventListener('progress', e => {
-      fileWithMeta.meta.percent = (e.loaded * 100.0) / e.total || 100
-      this.forceUpdate()
-    })
-
-    xhr.addEventListener('readystatechange', () => {
-      // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/readyState
-      if (xhr.readyState !== 2 && xhr.readyState !== 4) return
-
-      if (xhr.status === 0 && fileWithMeta.meta.status !== 'aborted') {
-        fileWithMeta.meta.status = 'exception_upload'
-        this.handleChangeStatus(fileWithMeta)
+    const chunksUploader = Uploader()
+      .onProgress(({ loaded, total }: any) => {
+        const percent = Math.round((loaded / total) * 100 * 100) / 100
+        fileWithMeta.meta.percent = percent || 100
         this.forceUpdate()
-      }
-
-      if (xhr.status > 0 && xhr.status < 400) {
+      })
+      .options({
+        url,
+        chunkSize: chunkSize * 1024 * 1024, // in mb
+      })
+      .send(body)
+      .end((error: any, data: any) => {
+        if (data) console.log({ data })
+        if (error) console.log('Error', { error })
         fileWithMeta.meta.percent = 100
-        if (xhr.readyState === 2) fileWithMeta.meta.status = 'headers_received'
-        if (xhr.readyState === 4) fileWithMeta.meta.status = 'done'
+        fileWithMeta.meta.status = 'done'
         this.handleChangeStatus(fileWithMeta)
         this.forceUpdate()
-      }
+      })
 
-      if (xhr.status >= 400 && fileWithMeta.meta.status !== 'error_upload') {
-        fileWithMeta.meta.status = 'error_upload'
-        this.handleChangeStatus(fileWithMeta)
-        this.forceUpdate()
-      }
-    })
-
-    if (this.props.timeout) xhr.timeout = this.props.timeout
-    xhr.send(body)
-    fileWithMeta.xhr = xhr
+    fileWithMeta.xhr = {
+      abort: chunksUploader.abort,
+      continue: chunksUploader.continue,
+    }
     fileWithMeta.meta.status = 'uploading'
     this.handleChangeStatus(fileWithMeta)
     this.forceUpdate()
