@@ -39,34 +39,60 @@ class Preview extends React.PureComponent<IPreviewProps> {
       return (
         <div className={className} style={style}>
           <span className="dzu-previewFileNameError">{title}</span>
-          {status === 'error_file_size' && <span>{size < minSizeBytes ? 'File too small' : 'File too big'}</span>}
+          {status === 'error_file_size' && (
+            <span>{size < minSizeBytes ? 'File too small' : 'File too big'}</span>
+          )}
           {status === 'error_validation' && <span>{String(validationError)}</span>}
-          {canRemove && <span className="dzu-previewButton" style={iconByFn.remove} onClick={remove} />}
+          {canRemove && (
+            <span className="dzu-previewButton" style={iconByFn.remove} onClick={remove} />
+          )}
         </div>
       )
     }
 
-    if (status === 'error_upload_params' || status === 'exception_upload' || status === 'error_upload') {
+    if (
+      status === 'error_upload_params' ||
+      status === 'exception_upload' ||
+      status === 'error_upload'
+    ) {
       title = `${title} (upload failed)`
     }
     if (status === 'aborted') title = `${title} (cancelled)`
 
     return (
       <div className={className} style={style}>
-        {previewUrl && <img className={imageClassName} style={imageStyle} src={previewUrl} alt={title} title={title} />}
+        {previewUrl && (
+          <img
+            className={imageClassName}
+            style={imageStyle}
+            src={previewUrl}
+            alt={title}
+            title={title}
+          />
+        )}
         {!previewUrl && <span className="dzu-previewFileName">{title}</span>}
-
+        {status === 'uploading' && Math.round(percent) === 100 && <div>Verifying file ...</div>}
         <div className="dzu-previewStatusContainer">
           {isUpload && (
-            <progress max={100} value={status === 'done' || status === 'headers_received' ? 100 : percent} />
+            <progress
+              max={100}
+              value={
+                status === 'done' || status === 'zipping' || status === 'headers_received'
+                  ? 100
+                  : percent
+              }
+            />
           )}
 
           {/* {status === 'uploading' && canCancel && (
             <span className="dzu-previewButton" style={iconByFn.cancel} onClick={cancel} />
           )} */}
-          {status !== 'preparing' && status !== 'getting_upload_params' && status !== 'uploading' && canRemove && (
-            <span className="dzu-previewButton" style={iconByFn.remove} onClick={remove} />
-          )}
+          {status !== 'preparing' &&
+            status !== 'getting_upload_params' &&
+            status !== 'uploading' &&
+            canRemove && (
+              <span className="dzu-previewButton" style={iconByFn.remove} onClick={remove} />
+            )}
           {/* {['error_upload_params', 'exception_upload', 'error_upload', 'aborted', 'ready'].includes(status) &&
             canRestart && <span className="dzu-previewButton" style={iconByFn.restart} onClick={restart} />} */}
         </div>

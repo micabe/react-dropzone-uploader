@@ -1,6 +1,6 @@
 {
   "name": "@micabe/react-dropzone-uploader",
-  "version": "2.11.0",
+  "version": "2.12.0",
   "author": "Mickael Abensur <mabensur@qynapse.com>",
   "description": "React file dropzone and uploader: fully customizable, progress indicators, upload cancellation and restart, zero deps and excellent TypeScript support",
   "main": "./src/Dropzone.tsx",
