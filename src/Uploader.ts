@@ -39,7 +39,8 @@ const uploader = function() {
     xhr.open('post', `${this.url}/init`)
 
     xhr.setRequestHeader('X-Chunks-Quantity', String(chunksQuantity))
-
+    xhr.setRequestHeader('X-Content-Name', this.file.name)
+    
     xhr.onreadystatechange = () => {
       if (xhr.readyState === 4 && xhr.status === 200) {
         const response = JSON.parse(xhr.responseText)
@@ -159,7 +160,6 @@ const uploader = function() {
       xhr.setRequestHeader('X-Content-Id', this.fileId)
       xhr.setRequestHeader('X-Chunk-Id', id)
       xhr.setRequestHeader('X-Chunks-Quantity', this.totalChunks)
-      xhr.setRequestHeader('X-Content-Name', this.file.name)
 
       xhr.onreadystatechange = () => {
         if (xhr.readyState === 4 && xhr.status === 201) {
