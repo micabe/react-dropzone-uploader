@@ -72,6 +72,7 @@ class Preview extends React.PureComponent<IPreviewProps> {
         )}
         {!previewUrl && <span className="dzu-previewFileName">{title}</span>}
         {status === 'uploading' && Math.round(percent) === 100 && <div>Verifying file ...</div>}
+        {status === 'done' && Math.round(percent) === 100 && <div>Ready</div>}
         <div className="dzu-previewStatusContainer">
           {isUpload && (
             <progress
